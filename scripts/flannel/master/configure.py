@@ -1,10 +1,6 @@
 from cloudify.exceptions import NonRecoverableError
-from cloudify.decorators import operation
 from cloudify import ctx
-import os
 import subprocess
-import time
-from cloudify.state import ctx_parameters as inputs
 
 CMD_APP = 'DOCKER_OPTS="--bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}"'
 
@@ -31,6 +27,6 @@ if __name__ == '__main__':
 
     ctx.logger.info('Configuring Flannel')
 
-    flannel = ctx.instance.runtime_properties['flannel']
+    flannel_args = ctx.instance.runtime_properties['flannel']
 
-    edit_docker_config(flannel)
+    edit_docker_config(flannel_args)

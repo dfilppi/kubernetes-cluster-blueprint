@@ -1,27 +1,23 @@
-from cloudify.decorators import operation
 from cloudify.exceptions import NonRecoverableError
 from cloudify import ctx
 import os
 import subprocess
 import time
-import socket
-import fcntl
-import struct
 from cloudify.state import ctx_parameters as inputs
 
 CMD_APP = 'DOCKER_OPTS="--bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}"'
 
 
-def run_flannel(master_ip):
+def run_flannel(ip, flannel_version):
 
     pipe = subprocess.Popen(
         ['sudo', 'docker', '-H',
-        'unix:///var/run/docker-bootstrap.sock',
-        'run', '-d', '--net=host', '--privileged',
-        '-v', '/dev/net:/dev/net',
-        'quay.io/coreos/flannel:0.5.3',
-        '/opt/bin/flanneld',
-        '--etcd-endpoints=http://{0}:4001'.format(master_ip)],
+         'unix:///var/run/docker-bootstrap.sock',
+         'run', '-d', '--net=host', '--privileged',
+         '-v', '/dev/net:/dev/net',
+         'quay.io/coreos/flannel:{0}'.format(flannel_version),
+         '/opt/bin/flanneld',
+         '--etcd-endpoints=http://{0}:4001'.format(ip)],
         stderr=open('/dev/null'),
         stdout=subprocess.PIPE
     )
@@ -68,12 +64,15 @@ if __name__ == '__main__':
     os.system("sudo service docker stop")
 
     master_ip = inputs['master_ip']
+
+    version = inputs['flannel_version']
+
     ctx.logger.info('Master IP: {0}'.format(master_ip))
 
-    ctx.instance.runtime_properties['flannel'] = run_flannel(master_ip)
+    ctx.instance.runtime_properties['flannel'] = run_flannel(master_ip, version)
 
-    flannel = ctx.instance.runtime_properties['flannel']
+    flannel_args = ctx.instance.runtime_properties['flannel']
 
-    ctx.logger.info('Flannel: {0}'.format(flannel))
+    ctx.logger.info('Flannel: {0}'.format(flannel_args))
 
-    edit_docker_config(flannel)
+    edit_docker_config(flannel_args)

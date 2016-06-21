@@ -1,18 +1,16 @@
-from cloudify.exceptions import NonRecoverableError
-from cloudify.decorators import operation
 from cloudify import ctx
 import os
 import subprocess
-import time
 from cloudify.state import ctx_parameters as inputs
 
 
-def run_flannel():
+def run_flannel(flannel_version):
 
     pipe = subprocess.Popen(
-        ['sudo', 'docker','-H', 'unix:///var/run/docker-bootstrap.sock',
-        'run', '-d', '--net=host', '--privileged', '-v',
-        '/dev/net:/dev/net', 'quay.io/coreos/flannel:0.5.3'],
+        ['sudo', 'docker', '-H', 'unix:///var/run/docker-bootstrap.sock',
+         'run', '-d', '--net=host', '--privileged', '-v',
+         '/dev/net:/dev/net',
+         'quay.io/coreos/flannel:{0}'.format(flannel_version)],
         stderr=open('/dev/null'),
         stdout=subprocess.PIPE
     )
@@ -39,6 +37,8 @@ if __name__ == '__main__':
 
     os.system("sudo service docker stop")
 
-    flannel = run_flannel()
+    version = inputs['flannel_version']
 
-    ctx.instance.runtime_properties['flannel'] = flannel
+    flannel_args = run_flannel(version)
+
+    ctx.instance.runtime_properties['flannel'] = flannel_args

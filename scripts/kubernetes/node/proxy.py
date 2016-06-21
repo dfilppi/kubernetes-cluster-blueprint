@@ -1,23 +1,16 @@
-from cloudify.decorators import operation
-from cloudify.exceptions import NonRecoverableError
 from cloudify import ctx
-import os
 import subprocess
-import time
-import socket
-import fcntl
-import struct
 from cloudify.state import ctx_parameters as inputs
 
 
-def run_proxy(master_ip, master_port):
+def run_proxy(ip, port):
 
     subprocess.call(
-  	    'sudo docker run -d --net=host --privileged '
-  	    'gcr.io/google_containers/hyperkube:v1.0.1 '
-  	    '/hyperkube proxy '
+        'sudo docker run -d --net=host --privileged '
+        'gcr.io/google_containers/hyperkube:v1.0.1 '
+        '/hyperkube proxy '
         '--master=http://{0}:{1} --v=2'
-  	    .format(master_ip, master_port),
+        .format(ip, port),
         shell=True
     )
 
