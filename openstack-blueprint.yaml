@@ -58,13 +58,15 @@ node_templates:
       server:
         userdata: |
           #!/bin/bash
-          sudo service ssh stop
-          curl -o install.sh -sSL https://get.docker.com/
-          sudo sh install.sh
-          sudo groupadd docker
-          sudo gpasswd -a ubuntu docker
-          sudo service docker restart
-          sudo service ssh start
+          if [ ! -f /usr/bin/docker ]; then
+            sudo service ssh stop
+            curl -o install.sh -sSL https://get.docker.com/
+            sudo sh install.sh
+            sudo groupadd docker
+            sudo gpasswd -a ubuntu docker
+            sudo service docker restart
+            sudo service ssh start
+          fi
     relationships:
       - target: kubernetes_security_group
         type: cloudify.openstack.server_connected_to_security_group
